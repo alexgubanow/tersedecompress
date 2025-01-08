@@ -10,14 +10,14 @@ SRCS += $(wildcard *.cpp)
 OBJS = $(addprefix $(OBJ_TESTS_DIR)/, $(addsuffix .o, $(basename $(SRCS))))
 
 $(OBJ_TESTS_DIR)/%.o: %.cpp | ${OBJ_TESTS_DIR}
-	$(CXX) $(CXXFLAGS) -I../src -I/usr/local/include -MMD -MF $(OBJ_TESTS_DIR)/$*.d -MP -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I../src -I$(PREFIX)/include -MMD -MF $(OBJ_TESTS_DIR)/$*.d -MP -c $< -o $@
 	
 .PHONY: clean all
 
 all: $(TEST_SUITE)
 
 $(TEST_SUITE): $(OBJS) | ${BIN_DIR}
-	$(LD) $(LDFLAGS) -o $(TEST_SUITE) $(OBJS) -L${BIN_DIR} -L/usr/local/lib -lgtest -ltersedecompress
+	$(LD) $(LDFLAGS) -o $(TEST_SUITE) $(OBJS) -L${BIN_DIR} -L$(PREFIX)/lib -lgtest -ltersedecompress
 
 ${OBJ_TESTS_DIR} ${BIN_DIR}:
 	-mkdir -p $@
