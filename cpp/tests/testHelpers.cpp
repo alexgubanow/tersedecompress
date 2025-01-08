@@ -1,6 +1,8 @@
 #include "testHelpers.h"
 #include "../src/TerseDecompresser.h"
 
+#include <cstring>
+
 static std::string test_data_path = "./";
 
 TestHelpers *TestHelpers::inst = nullptr;
