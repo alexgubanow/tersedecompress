@@ -14,9 +14,12 @@ SpackDecompresser.cpp \
 TerseBlockReader.cpp \
 TerseDecompresser.cpp \
 TerseHeader.cpp
+SRC_APP=\
+main.cpp \
+argumentParser.cpp
 
 OBJS_LIB += $(addprefix $(OBJ_LIB_DIR)/, $(addsuffix .o, $(basename $(SRC_LIB))))
-OBJS += $(OBJ_DIR)/main.o
+OBJS += $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(SRC_APP))))
 DEPS += $(addsuffix .d, $(basename $(OBJS)))
 
 $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
