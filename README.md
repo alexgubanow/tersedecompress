@@ -17,7 +17,7 @@ IBM Mainframe files on any workstation or laptop etc. that supports Java.
 
 **Version 5.0.1: July 2023 -- September 2025**
 
-- Updated pom.xml to have Maven compile using Java 21, and shade the jar.
+- Updated pom.xml to have Maven compile using Java 21
 - Allow user to specify only <input file> for text files. Resulting <output file> will be <input file>.txt
 - Added C++ port
 - Added commit id to the version
