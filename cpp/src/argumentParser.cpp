@@ -69,7 +69,7 @@ void ArgumentParser::parseArguments(int argc, char **argv)
     std::exit(1);
   }
   // If we have input but no output and we're in text mode => default output = input + ".txt"
-  if (flags["-b"] == true && outputFile.empty())
+  if (hasFlag("-b") != true && outputFile.empty())
   {
     outputFile = inputFile + ".txt";
   }
