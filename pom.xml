@@ -5,7 +5,7 @@
 
 	<groupId>org.openmainframeproject.tersedecompress</groupId>
 	<artifactId>tersedecompress</artifactId>
-	<version>5.0.0</version>
+	<version>5.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>tersedecompress</name>
@@ -16,13 +16,14 @@
 		<skipTests>true</skipTests>	
 	</properties>
 	<build>
+		<finalName>tersedecompress</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
-                    <release>11</release>
+                    <release>21</release>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -37,6 +38,37 @@
 						</manifest>
 					</archive>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<version>9.0.2</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<generateGitPropertiesFile>true</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<commitIdGenerationMode>full</commitIdGenerationMode>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>templating-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>filter-sources</goal>
+						</goals>
+						<phase>generate-sources</phase>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

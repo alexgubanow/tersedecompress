@@ -15,6 +15,13 @@ IBM Mainframe files on any workstation or laptop etc. that supports Java.
 
 ## Updates ##
 
+**Version 5.0.1: July 2023 -- September 2025**
+
+- Updated pom.xml to have Maven compile using Java 21, and shade the jar.
+- Allow user to specify only <input file> for text files. Resulting <output file> will be <input file>.txt
+- Added C++ port
+- Added commit id to the version
+
 **Version 5: March 2021**
 
 - Support for variable length binary records. Variable length records processed in binary mode will be prefixed with a 4 byte field in the same format as the IBM RDW i.e. 2 byte record length field (including RDW length, big-endian) followed by 2 bytes of zeros.
@@ -25,7 +32,7 @@ For execution, TerseDecompress needs a JVM runtime environment.
 
 Usage:
 
-```java -jar tersedecompress-5.0.0.jar [-b] tersed-file output-file```
+```java -jar tersedecompress.jar [-b] tersed-file output-file```
 
 Default mode is text mode, which will attempt EBCDIC -> ASCII conversion.
 

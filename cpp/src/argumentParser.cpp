@@ -5,6 +5,10 @@
 #include <unordered_map>
 #include <vector>
 
+#ifndef GIT_TAG
+#define GIT_TAG "unknown"
+#endif
+
 ArgumentParser::ArgumentParser(int argc, char **argv) { parseArguments(argc, argv); }
 
 bool ArgumentParser::hasFlag(const std::string &flag) const { return flags.find(flag) != flags.end(); }
@@ -25,7 +29,7 @@ void ArgumentParser::showHelp() const
   std::cout << "  input_file   Path to the input file (required).\n";
   std::cout << "  output_file  Path to the output file (optional).\n";
   std::cout << "               In text mode, output_file defaults to <input file>.txt.\n";
-  std::cout << "Version: 5 (C++ port)\n";
+  std::cout << "Version: 5.0.1, commit " << GIT_TAG << "\n";
 }
 
 std::string ArgumentParser::getInputFile() const { return inputFile; }

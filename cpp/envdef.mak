@@ -24,3 +24,5 @@ CXXFLAGS +=-m64 -mzos-float-kind=ieee -D_UNIX03_SOURCE -D_UNIX03_THREADS -D_POSI
 	-D_OPEN_SYS_SOCK_IPV6=1 -D_XOPEN_SOURCE_EXTENDED=1 -DOE_SOCKETS -D_OPEN_SYS_IF_EXT=1
 LDFLAGS +=-m64
 endif
+
+GIT_TAG := $(shell git rev-parse --short HEAD)
