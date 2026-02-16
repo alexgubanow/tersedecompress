@@ -46,6 +46,10 @@ void TerseDecompresser::putChar(int x)
   }
   else
   {
+    if (record_.capacity() == record_.size())
+    {
+      throw std::runtime_error("Record size exceeds expected maximum. File may be corrupted or not a valid Terse file.");
+    }
     record_.push_back(options_.textMode ? static_cast< char >(Tersedecompress::EbcToAsc[x - 1])
                                         : static_cast< char >(x - 1));
     if (header_.variableFlag != true && static_cast< int >(record_.size()) == header_.recordLength)

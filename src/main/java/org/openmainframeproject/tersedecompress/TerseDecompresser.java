@@ -70,6 +70,9 @@ abstract class TerseDecompresser implements AutoCloseable
         } else if (X == Constants.RECORDMARK && header.VariableFlag == true) {
             endRecord();
         } else {
+            if (record.capacity() == record.position()) {
+                throw new IOException("Record size exceeds expected maximum. File may be corrupted or not a valid Terse file.");
+            }
             record.put(TextFlag ? (byte) Constants.EbcToAsc[X - 1] : (byte) (X - 1));
             if (header.VariableFlag != true && (int) (record.position()) == header.RecordLength) {
                 endRecord();
