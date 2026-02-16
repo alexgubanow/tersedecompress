@@ -6,9 +6,9 @@ import java.io.OutputStream;
 
 class SpackDecompresser extends TerseDecompresser {
 	
-	SpackDecompresser(InputStream instream, OutputStream outputStream, TerseHeader header)
+	SpackDecompresser(InputStream instream, OutputStream outputStream, TerseHeader header, boolean textMode) throws IOException
 	{
-		super(instream, outputStream, header);
+		super(instream, outputStream, header, textMode);
 	}
 	
     private int node =0;

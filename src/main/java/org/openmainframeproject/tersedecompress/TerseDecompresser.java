@@ -2,71 +2,62 @@ package org.openmainframeproject.tersedecompress;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 abstract class TerseDecompresser implements AutoCloseable
 {
 	TerseBlockReader input;
-	ByteArrayOutputStream record;
+	ByteBuffer record;
 	DataOutputStream stream;
-	
-	boolean HostFlag; 
-	boolean TextFlag;
-	boolean VariableFlag;
-	
-    long         OutputTotal   = 0    ; /* total number of bytes                    */
-    int         RecordLength; /* host perspective record length           */
-	
-    byte[] lineseparator = System.lineSeparator().getBytes();
+    final TerseHeader header;
+    final boolean TextFlag;
     
     public abstract void decode() throws IOException;
     
-    public static TerseDecompresser create(InputStream inputStream, OutputStream outputStream) throws IOException
+    public static TerseDecompresser create(InputStream inputStream, OutputStream outputStream, boolean textMode) throws IOException
     {
         DataInputStream input = new DataInputStream(new BufferedInputStream(inputStream));
         TerseHeader header_rv = TerseHeader.CheckHeader(input);
         
         if (!header_rv.SpackFlag) {
-        	return new NonSpackDecompresser(input, outputStream, header_rv);
+        	return new NonSpackDecompresser(input, outputStream, header_rv, textMode);
         } else {
-        	return new SpackDecompresser(input, outputStream, header_rv);
+        	return new SpackDecompresser(input, outputStream, header_rv, textMode);
         }
     }
     
-	public TerseDecompresser(InputStream instream, OutputStream outputStream, TerseHeader header)
+	public TerseDecompresser(InputStream instream, OutputStream outputStream, TerseHeader header, boolean textMode)
 	{		
-		this.RecordLength = header.RecordLength;
-		this.HostFlag = header.HostFlag; 
-		this.VariableFlag = header.RecfmV;
+		this.header = header;
+		this.TextFlag = textMode;
 		this.input = new TerseBlockReader(instream);
 		this.stream = new DataOutputStream(new BufferedOutputStream(outputStream));
 		
-		this.record = new ByteArrayOutputStream(RecordLength);
+        // Reserve enough space for the record buffer to avoid reallocations.
+        // For variable-length records, we can have up to 32767 bytes.
+		this.record = ByteBuffer.allocate(header.VariableFlag ? 32767 : (header.RecordLength * 2));
 	}
 	
     /* Write a new line to the output file*/
     public void endRecord() throws IOException 
     {
-    	if (VariableFlag && !TextFlag)
+    	if (header.VariableFlag && !TextFlag)
     	{
     		// write a RDW
-    		int recordlength = record.size() + 4;
+    		int recordlength = record.position() + 4;
     		int rdw = recordlength << 16;
     		stream.writeInt(rdw);
     	}
-    	
-    	stream.write(record.toByteArray());
-    	record.reset();
-    	
-    	if (TextFlag)
-    	{
-    		stream.write(lineseparator);
-    	}    		
+        if (TextFlag) {
+            record.put((byte)0x0A);
+        }
+        stream.write(record.array(), 0, record.position());
+        record.clear();
     }
 
     /*
@@ -74,47 +65,21 @@ abstract class TerseDecompresser implements AutoCloseable
      */
 
     public void PutChar(int X) throws IOException {
-        if (X == 0) {
-            if (HostFlag && TextFlag && VariableFlag) {
-                endRecord();
-            }
+        if (X == 0 && TextFlag && header.VariableFlag == true) {
+            endRecord();
+        } else if (X == Constants.RECORDMARK && header.VariableFlag == true) {
+            endRecord();
         } else {
-            if (HostFlag && TextFlag) {
-                if (VariableFlag) {
-                    if (X == Constants.RECORDMARK) {
-                        endRecord();
-                    } else {
-                    	record.write(Constants.EbcToAsc[X-1]);
-                    }
-                } else {
-                	record.write(Constants.EbcToAsc[X-1]);
-                    if (record.size() == RecordLength) {
-                        endRecord();
-                    }
-                }
-            } 
-            else 
-            {
-                if (X == Constants.RECORDMARK) 
-                {
-                	if (VariableFlag)
-                	{
-                		endRecord();
-                	}
-                	/* else discard record marks */
-                }
-                else
-                {
-                	record.write(X-1);
-                }
+            record.put(TextFlag ? (byte) Constants.EbcToAsc[X - 1] : (byte) (X - 1));
+            if (header.VariableFlag != true && (int) (record.position()) == header.RecordLength) {
+                endRecord();
             }
         }
     }
 
 	@Override
 	public void close() throws Exception {
-		if (record.size() > 0 
-				|| TextFlag && VariableFlag)
+		if (record.position() > 0 || TextFlag && header.VariableFlag)
 		{
 			endRecord();
 		}
