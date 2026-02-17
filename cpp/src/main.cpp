@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
   {
     DecompresserOptions options;
     options.textMode = !parser.hasFlag("-b");
+    options.gzipMode = parser.hasFlag("-z");
     auto decompresser = TerseDecompresser::create(inStream, outStream, options);
     std::cout << "Decompressing...\n";
     decompresser->decode();

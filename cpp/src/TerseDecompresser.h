@@ -4,6 +4,8 @@
 #include "TerseBlockReader.h"
 #include "TerseHeader.h"
 
+#include <zlib.h>
+
 #include <istream>
 #include <memory>
 #include <ostream>
@@ -30,6 +32,10 @@ protected:
   void close();
   const TerseHeader header_;
   const DecompresserOptions options_;
+  z_stream *zlibStream ;
+  char *zlibBuffer ;
+  char *zlibBufferCursor ;
+  uInt zlibBufferSize;
   std::vector< char > record_; // buffer for the current record
   std::istream &inputStream_;
   std::ostream &outputStream_;

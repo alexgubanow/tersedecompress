@@ -23,7 +23,7 @@ $(OBJ_TESTS_DIR)/%.o: %.cpp | ${OBJ_TESTS_DIR}
 all: $(TEST_SUITE)
 
 $(TEST_SUITE): $(OBJS) | ${BIN_DIR}
-	$(LD) $(LDFLAGS) -o $(TEST_SUITE) $(OBJS) -L${BIN_DIR} -L$(GTEST_LIBDIR) -lgtest -ltersedecompress
+	$(LD) $(LDFLAGS) -o $(TEST_SUITE) $(OBJS) -L${BIN_DIR} -L$(GTEST_LIBDIR) -lgtest $(LIBS)
 
 ${OBJ_TESTS_DIR} ${BIN_DIR}:
 	-mkdir -p $@
