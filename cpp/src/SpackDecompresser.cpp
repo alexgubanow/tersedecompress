@@ -3,14 +3,10 @@
 
 #include <stdexcept>
 
-SpackDecompresser::SpackDecompresser(std::istream &in, std::ostream &out, std::unique_ptr< TerseBlockReader > reader,
-                                     const TerseHeader &header)
-    : TerseDecompresser(in, out)
+SpackDecompresser::SpackDecompresser(std::istream &in, std::ostream &out, const TerseHeader &header,
+                                     const DecompresserOptions &options)
+    : TerseDecompresser(in, out, header, options)
 {
-  blockReader_ = std::move(reader);
-  hostFlag_ = header.hostFlag;
-  variableFlag_ = header.recfmV;
-  recordLength_ = header.recordLength;
   tree_.resize(Tersedecompress::TREESIZE + 1);
 }
 

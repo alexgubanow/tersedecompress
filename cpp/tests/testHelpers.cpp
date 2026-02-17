@@ -22,9 +22,10 @@ void TestHelpers::DecompressAndVerify(const std::string &file, const std::string
     throw std::runtime_error("Could not open file: " + untersed);
   }
   std::stringstream output(std::ios::in | std::ios::out | std::ios::binary);
-
-  auto decomp = TerseDecompresser::create(tersedStream, output);
-  decomp->setTextFlag(textMode);
+  DecompresserOptions options;
+  options.textMode = textMode;
+  options.gzipMode = false;
+  auto decomp = TerseDecompresser::create(tersedStream, output, options);
   decomp->decode();
 
   output.seekg(0, std::ios::end);
@@ -48,10 +49,6 @@ void TestHelpers::DecompressAndVerify(const std::string &file, const std::string
     bufferB[expectedStream.gcount()] = '\0';
     ASSERT_EQ(output.gcount(), expectedStream.gcount()) << "Mismatch for actual read of " << tersed << "\nExpected size "
                                                         << expectedStream.gcount() << " untersed size " << output.gcount();
-    if (std::memcmp(bufferA.data(), bufferB.data(), output.gcount()) != 0)
-    {
-      std::cout << "Mismatch for " << tersed;
-    }
 
     ASSERT_EQ(std::memcmp(bufferA.data(), bufferB.data(), output.gcount()), 0)
         << "Contents differ for " << file << " current position " << output.tellp();

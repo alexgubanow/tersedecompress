@@ -158,7 +158,7 @@ public class AppTest
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
         try (TerseDecompresser outputWriter 
-        		= TerseDecompresser.create(new FileInputStream(tersed), out))
+        		= TerseDecompresser.create(new FileInputStream(tersed), out, false))
         {
         	outputWriter.decode();
         }
@@ -178,9 +178,8 @@ public class AppTest
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
         try (TerseDecompresser outputWriter 
-        		= TerseDecompresser.create(new FileInputStream(tersed), out))
+        		= TerseDecompresser.create(new FileInputStream(tersed), out, true))
         {
-        	outputWriter.TextFlag = true;
         	outputWriter.decode();
         }
 		assertArrayEquals(file, expected, out.toByteArray());
