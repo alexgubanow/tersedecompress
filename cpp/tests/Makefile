@@ -4,11 +4,7 @@ include ../envdef.mak
 OBJ_TESTS_DIR=$(OBJ_DIR)/tests
 TEST_SUITE?=$(BIN_DIR)/tersedecompress++test
 
-ifneq ($(filter $(UNAME),Linux Darwin),)
 GTEST_LIBDIR=$(PREFIX)/lib
-else
-GTEST_LIBDIR=$(PREFIX)/lib64
-endif
 
 default: all
 
