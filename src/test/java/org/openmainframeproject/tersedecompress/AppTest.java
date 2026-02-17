@@ -154,6 +154,7 @@ public class AppTest
 		String untersed = location + "/ZOSBINARY/" + file;
 		
 		byte[] expected = Files.readAllBytes(Paths.get(untersed));
+		System.out.println("Binary: " + packSpack + " " + file  + " size=" + expected.length);
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
@@ -174,6 +175,7 @@ public class AppTest
 		// i.e. the data was checked out in text mode with git crlf conversion or otherwise
 		// converted.
 		byte[] expected = Files.readAllBytes(Paths.get(untersed));
+		System.out.println("Text  : " + packSpack + " " + file  + " size=" + expected.length);
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
