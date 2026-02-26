@@ -25,6 +25,7 @@ void ArgumentParser::showHelp() const
   std::cout << "Options:\n";
   std::cout << "  -h           Show this help message.\n";
   std::cout << "  -b           Enable binary mode (no EBCDIC->ASCII conversion).\n";
+  std::cout << "  -z           Enable gzip compression for the output file.\n";
   std::cout << "Arguments:\n";
   std::cout << "  input_file   Path to the input file (required).\n";
   std::cout << "  output_file  Path to the output file (optional).\n";
@@ -49,6 +50,10 @@ void ArgumentParser::parseArguments(int argc, char **argv)
     else if (args[i] == "-b")
     {
       flags["-b"] = true;
+    }
+    else if (args[i] == "-z")
+    {
+      flags["-z"] = true;
     }
     else if (inputFile.empty())
     {
@@ -77,5 +82,6 @@ void ArgumentParser::parseArguments(int argc, char **argv)
     return;
   }
   std::string outputFileExtension = hasFlag("-b") ? ".bin" : ".txt";
+  outputFileExtension += hasFlag("-z") ? ".gz" : "";
   outputFile = inputFile + outputFileExtension;
 }

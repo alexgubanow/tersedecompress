@@ -36,6 +36,7 @@ package org.openmainframeproject.tersedecompress;
 /*****************************************************************************/
 
 import java.io.*;
+import java.util.zip.GZIPOutputStream;
 
 class TerseDecompress {
 
@@ -46,6 +47,7 @@ class TerseDecompress {
            +"If no <output file> provided in text mode, it will default to <input file>.txt\n"
            +"Options:\n"
            +"-b flag turns on binary mode, no conversion will be attempted\n"
+           +"-z output file will be compressed using available gzip library\n"
            +"-h or --help prints this message\n"
            +"-v or --version prints the version information\n"
           );
@@ -55,6 +57,7 @@ class TerseDecompress {
     private String outputFileName = null;
     private boolean isHelpRequested = false;
     private boolean textMode = true;
+    private boolean gzipMode = false;
 	
 	private void printUsageAndExit() {
 		System.out.println(DetailedHelp);
@@ -67,6 +70,11 @@ class TerseDecompress {
     	if (args.length == 0 || inputFileName == null || isHelpRequested == true) {
             printUsageAndExit();
         }
+        OutputStream outputStream = new FileOutputStream(outputFileName);
+        if (gzipMode == true) {
+            outputStream = new GZIPOutputStream(outputStream);
+        }
+        
         System.out.println(
                 "Decompressing input file '" + inputFileName + "' to output file '" + outputFileName + "'");
         try (TerseDecompresser outputWriter = TerseDecompresser.create(new FileInputStream(inputFileName), outputStream, textMode)) {
@@ -86,6 +94,9 @@ class TerseDecompress {
             }
             else if (args[i].equals("-b")) {
                 textMode = false;
+            }
+            else if (args[i].equals("-z")) {
+                gzipMode = true;
             }
             else if (args[i].equals("-v") || args[i].equals("--version")) {
                 System.out.println(versionString);
@@ -108,7 +119,7 @@ class TerseDecompress {
             return;
         }
         String outputFileExtension = textMode ? ".txt" : ".bin";
-        String unescapedInputFile = inputFileName;
+        outputFileExtension += gzipMode ? ".gz" : "";
         outputFileName = inputFileName + outputFileExtension;
     }
     public static void main (String args[]) throws Exception {

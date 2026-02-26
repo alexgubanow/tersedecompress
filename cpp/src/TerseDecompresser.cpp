@@ -23,15 +23,36 @@ std::unique_ptr< TerseDecompresser > TerseDecompresser::create(std::istream &inp
 
 TerseDecompresser::~TerseDecompresser()
 {
+  if (zlibBuffer != nullptr)
+  {
+    delete[] zlibBuffer;
+    zlibBuffer = nullptr;
+  }
+  if (zlibStream != nullptr)
+  {
+    deflateEnd(zlibStream);
+    delete zlibStream;
+    zlibStream = nullptr;
+  }
 }
 
 TerseDecompresser::TerseDecompresser(std::istream &in, std::ostream &out, const TerseHeader &header, const DecompresserOptions &options)
-    : header_(header), options_(options), inputStream_(in), outputStream_(out)
+    : header_(header), options_(options), zlibStream(nullptr), zlibBuffer(nullptr),
+      zlibBufferCursor(nullptr), zlibBufferSize(128 * 1024), inputStream_(in), outputStream_(out)
 {
   blockReader_ = std::make_unique< TerseBlockReader >(inputStream_);
   // Reserve enough space for the record buffer to avoid reallocations.
   // For variable-length records, we can have up to 32767 bytes.
   record_.reserve(header_.variableFlag ? 32767 : (header_.recordLength * 2));
+  if (options_.gzipMode)
+  {
+    zlibBuffer = new char[zlibBufferSize];
+    zlibBufferCursor = zlibBuffer;
+    zlibStream = new z_stream();
+    std::memset(zlibStream, 0, sizeof(z_stream));
+    // 15 | 16 = 31 for gzip header and trailer
+    deflateInit2(zlibStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
+  }
 }
 
 void TerseDecompresser::putChar(int x)
@@ -84,6 +105,27 @@ void TerseDecompresser::endRecord()
   {
     return;
   }
+  if (zlibStream != nullptr)
+  {
+    zlibStream->avail_in = static_cast< uInt >(record_.size());
+    zlibStream->next_in = reinterpret_cast< Bytef * >(record_.data());
+    do
+    {
+      zlibStream->avail_out = static_cast< uInt >(zlibBufferSize - (zlibBufferCursor - zlibBuffer));
+      zlibStream->next_out = reinterpret_cast< Bytef * >(zlibBufferCursor);
+      deflate(zlibStream, Z_NO_FLUSH);
+      if (zlibStream->avail_out == 0)
+      {
+        outputStream_.write(zlibBuffer, zlibBufferSize);
+        zlibBufferCursor = zlibBuffer;
+      }
+      else
+      {
+        zlibBufferCursor += (zlibBufferSize - (zlibBufferCursor - zlibBuffer)) - zlibStream->avail_out;
+      }
+    } while (zlibStream->avail_out == 0);
+  }
+  else
   {
     outputStream_.write(record_.data(), record_.size());
   }
@@ -95,6 +137,31 @@ void TerseDecompresser::close()
   if (!record_.empty() || (options_.textMode && header_.variableFlag))
   {
     endRecord();
+  }
+  if (zlibStream != nullptr)
+  {
+    zlibStream->avail_in = 0;
+    zlibStream->next_in = nullptr;
+    do
+    {
+      uInt bufferAvail = static_cast< uInt >(zlibBufferSize - (zlibBufferCursor - zlibBuffer));
+      zlibStream->avail_out = bufferAvail;
+      zlibStream->next_out = reinterpret_cast< Bytef * >(zlibBufferCursor);
+      deflate(zlibStream, Z_FINISH);
+      if (zlibStream->avail_out == 0)
+      {
+        outputStream_.write(zlibBuffer, zlibBufferSize);
+        zlibBufferCursor = zlibBuffer;
+      }
+      else
+      {
+        zlibBufferCursor += bufferAvail - zlibStream->avail_out;
+      }
+    } while (zlibStream->avail_out == 0);
+    if (zlibBufferCursor != zlibBuffer)
+    {
+      outputStream_.write(zlibBuffer, zlibBufferCursor - zlibBuffer);
+    }
   }
   outputStream_.flush();
 }
