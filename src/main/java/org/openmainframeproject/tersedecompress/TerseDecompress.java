@@ -36,6 +36,7 @@ package org.openmainframeproject.tersedecompress;
 /*****************************************************************************/
 
 import java.io.*;
+import java.util.zip.GZIPOutputStream;
 
 class TerseDecompress {
 
@@ -46,14 +47,17 @@ class TerseDecompress {
            +"If no <output file> provided in text mode, it will default to <input file>.txt\n"
            +"Options:\n"
            +"-b flag turns on binary mode, no conversion will be attempted\n"
+           +"-z output file will be compressed using available gzip library\n"
            +"-h or --help prints this message\n"
+           +"-v or --version prints the version information\n"
           );
 
-    private static final String versionString = new String ("Version 5.0.1, commit " + Version.COMMIT_ID_ABBREV);
+    private static final String versionString = new String ("Version 5.1, commit " + Version.COMMIT_ID_ABBREV);
     private String inputFileName = null;
     private String outputFileName = null;
     private boolean isHelpRequested = false;
     private boolean textMode = true;
+    private boolean gzipMode = false;
 	
 	private void printUsageAndExit() {
 		System.out.println(DetailedHelp);
@@ -63,24 +67,21 @@ class TerseDecompress {
 	
     private void process (String args[]) throws Exception {
         parseArgs(args);
-    	if (args.length == 0 || (inputFileName == null && outputFileName == null) || (outputFileName == null && textMode == false) || isHelpRequested == true) 
-        {
+    	if (args.length == 0 || inputFileName == null || isHelpRequested == true) {
             printUsageAndExit();
         }
-
-        if (outputFileName == null) {
-            outputFileName = inputFileName + ".txt";
+        OutputStream outputStream = new FileOutputStream(outputFileName);
+        if (gzipMode == true) {
+            outputStream = new GZIPOutputStream(outputStream);
         }
-
-		System.out.println("Attempting to decompress input file (" + inputFileName +") to output file (" + outputFileName +")");
-        try (TerseDecompresser outputWriter 
-        		= TerseDecompresser.create(new FileInputStream(inputFileName), new FileOutputStream(outputFileName)))
-        {	 
-        	outputWriter.TextFlag = textMode;
+        
+        System.out.println(
+                "Decompressing input file '" + inputFileName + "' to output file '" + outputFileName + "'");
+        try (TerseDecompresser outputWriter = TerseDecompresser.create(new FileInputStream(inputFileName), outputStream, textMode)) {
 	        outputWriter.decode();
         }
 		catch (Exception e) {
-			System.out.printf("Something went wrong, Exception %s\n", e.getMessage());
+			System.out.println("Something went wrong, Exception: '" + e.getMessage() + "'");
 		}
 		
         System.out.println("Processing completed");
@@ -94,11 +95,18 @@ class TerseDecompress {
             else if (args[i].equals("-b")) {
                 textMode = false;
             }
+            else if (args[i].equals("-z")) {
+                gzipMode = true;
+            }
+            else if (args[i].equals("-v") || args[i].equals("--version")) {
+                System.out.println(versionString);
+                System.exit(0);
+            }
             // first non-flag argument is the input file name
             else if (inputFileName == null) {
                 inputFileName = args[i];
             }
-            // second non-flag argument is the input file name
+            // second non-flag argument is the output file name
             else if (outputFileName == null) {
                 outputFileName = args[i];
             }
@@ -107,6 +115,12 @@ class TerseDecompress {
                 isHelpRequested = true;
             }
         }
+        if (outputFileName != null) {
+            return;
+        }
+        String outputFileExtension = textMode ? ".txt" : ".bin";
+        outputFileExtension += gzipMode ? ".gz" : "";
+        outputFileName = inputFileName + outputFileExtension;
     }
     public static void main (String args[]) throws Exception {
 
